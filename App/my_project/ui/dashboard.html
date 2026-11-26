@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="uk" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animators DB - Лабораторна робота №5 (Stored Programs & Triggers)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    :root[data-theme="light"] {
+      --bg: #ffffff;
+      --bg-subtle: #f8fafc;
+      --bg-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-subtle: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --danger-light: #fef2f2;
+      --modal-bg: rgba(15, 23, 42, 0.5);
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #09090b;
+      --bg-subtle: #141416;
+      --bg-hover: #1f1f23;
+      --border: #27272a;
+      --border-strong: #3f3f46;
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --text-subtle: #71717a;
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --primary-light: #172554;
+      --danger: #ef4444;
+      --danger-hover: #f87171;
+      --danger-light: #450a0a;
+      --modal-bg: rgba(0, 0, 0, 0.7);
+      --code-bg: #000000;
+      --code-text: #f4f4f5;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      font-size: 13.5px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    header.navbar {
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .nav-container {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 14.5px;
+      letter-spacing: -0.01em;
+      flex-shrink: 0;
+    }
+    .brand-badge {
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border: 1px solid var(--border-strong);
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+
+    /* Navigation tabs */
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow-x: auto;
+      height: 100%;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .tab-btn:hover {
+      color: var(--text);
+      background: var(--bg-hover);
+    }
+    .tab-btn.active {
+      color: var(--text);
+      background: var(--bg-hover);
+      font-weight: 600;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .btn-default {
+      background: var(--bg);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-default:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-strong);
+    }
+    .btn-primary {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+    .btn-primary:hover {
+      opacity: 0.9;
+    }
+    .btn-danger {
+      background: var(--danger-light);
+      color: var(--danger);
+      border-color: transparent;
+    }
+    .btn-danger:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 11.5px;
+    }
+    .btn-circle {
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      min-height: 30px;
+      border-radius: 50%;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    /* Sub-nav category bar for Reference Tables */
+    .subnav {
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 0;
+      display: none;
+    }
+    .subnav-container {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+    }
+    .subnav-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--text-subtle);
+      margin-right: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    /* Main Container */
+    main.main-content {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 24px 20px;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Simple Summary Bar */
+    .summary-bar {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-subtle);
+      font-size: 12.5px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .summary-value {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .summary-divider {
+      color: var(--border-strong);
+    }
+
+    /* View Header */
+    .view-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .view-title-group h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .view-title-group p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    .view-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .search-input {
+      padding: 6px 10px;
+      font-size: 12.5px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      width: 200px;
+      font-family: inherit;
+    }
+    .search-input:focus {
+      border-color: var(--border-strong);
+    }
+
+    /* Simple Table */
+    .table-box {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 12.5px;
+    }
+    th {
+      background: var(--bg-subtle);
+      padding: 9px 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tbody tr:hover {
+      background: var(--bg-hover);
+    }
+
+    /* Status badge simple */
+    .badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+    }
+    .badge-done {
+      border-color: #86efac;
+      background: #f0fdf4;
+      color: #166534;
+    }
+    :root[data-theme="dark"] .badge-done {
+      border-color: #166534;
+      background: #052e16;
+      color: #86efac;
+    }
+
+    /* Action links */
+    .action-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+    .action-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 2px 4px;
+    }
+    .action-link:hover {
+      text-decoration: underline;
+    }
+    .action-link.delete {
+      color: var(--danger);
+    }
+
+    /* Modal Dialog */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--modal-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+    .modal-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header h3 {
+      font-size: 14.5px;
+      font-weight: 600;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px 6px;
+    }
+    .modal-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .modal-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      background: var(--bg-subtle);
+      border-radius: 0 0 8px 8px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .form-control {
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+    }
+
+    /* Side Panel / Relations Drawer */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--modal-bg);
+      display: flex;
+      justify-content: flex-end;
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .drawer-panel {
+      width: 100%;
+      max-width: 500px;
+      background: var(--bg);
+      border-left: 1px solid var(--border);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .drawer-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .drawer-body {
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .relation-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+    .relation-item {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--bg-subtle);
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    /* API Console */
+    .console-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .console-endpoints {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 8px;
+    }
+    .endpoint-item {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--bg);
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .endpoint-item:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-strong);
+    }
+    .code-box {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      max-height: 420px;
+      white-space: pre;
+    }
+
+    /* Toasts */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 120;
+    }
+    .toast {
+      padding: 8px 14px;
+      background: var(--text);
+      color: var(--bg);
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Empty and Loading states */
+    .loading-state, .empty-state {
+      padding: 32px 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand">
+        Animators DB
+        <span class="brand-badge">Лаб #5</span>
+      </a>
+
+      <!-- Primary Tabs -->
+      <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchView('animators')">Аніматори</button>
+        <button class="tab-btn" onclick="switchView('agencies')">Агенції</button>
+        <button class="tab-btn" onclick="switchView('orders')">Замовлення</button>
+        <button class="tab-btn" onclick="switchView('clients')">Клієнти</button>
+        <button class="tab-btn" onclick="switchView('specializations')">Спеціалізації</button>
+        <button class="tab-btn" onclick="switchView('payments')">Оплати</button>
+        <button class="tab-btn" onclick="switchView('reviews')">Відгуки (1:M без FK)</button>
+        <button class="tab-btn" onclick="switchView('audit_logs')">Аудит-лог</button>
+        <button class="tab-btn" id="btnCatalogsTab" onclick="toggleCatalogsSubnav()">Довідники...</button>
+        <button class="tab-btn" onclick="switchView('api-console')">API Консоль</button>
+      </nav>
+
+      <!-- Actions -->
+      <div class="nav-actions">
+        <button class="btn btn-default btn-sm" onclick="toggleTheme()" id="themeBtn">Темна тема</button>
+        <button class="btn btn-default btn-sm" onclick="refreshCurrentView()">Оновити</button>
+        <button class="btn btn-primary btn-sm" id="btnCreate" onclick="openCreateModal()">+ Додати запис</button>
+        <button class="btn btn-danger btn-circle" id="btnStopServer" onclick="openStopModal()" title="Зупинити сервер" aria-label="Зупинити сервер">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+            <line x1="12" y1="2" x2="12" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Subnav Bar for Catalog Tables -->
+  <div class="subnav" id="catalogsSubnav">
+    <div class="subnav-container">
+      <span class="subnav-label">Довідники:</span>
+      <button class="tab-btn" onclick="switchView('addresses')">Адреси</button>
+      <button class="tab-btn" onclick="switchView('holiday-types')">Типи свят</button>
+      <button class="tab-btn" onclick="switchView('order-statuses')">Статуси замовлень</button>
+      <button class="tab-btn" onclick="switchView('payment-methods')">Способи оплати</button>
+      <button class="tab-btn" onclick="switchView('roles')">Ролі</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Clean Summary Indicator Bar -->
+    <div class="summary-bar" id="summaryBar">
+      <div class="summary-item">
+        <span>Аніматорів:</span>
+        <span class="summary-value" id="kpiAnimators">-</span>
+      </div>
+      <span class="summary-divider">|</span>
+      <div class="summary-item">
+        <span>Агенцій:</span>
+        <span class="summary-value" id="kpiAgencies">-</span>
+      </div>
+      <span class="summary-divider">|</span>
+      <div class="summary-item">
+        <span>Замовлень:</span>
+        <span class="summary-value" id="kpiOrders">-</span>
+      </div>
+      <span class="summary-divider">|</span>
+      <div class="summary-item">
+        <span>Всього оплат:</span>
+        <span class="summary-value" id="kpiPayments">- ₴</span>
+      </div>
+    </div>
+
+    <!-- View Header -->
+    <div class="view-header">
+      <div class="view-title-group">
+        <h1 id="viewTitle">Аніматори</h1>
+        <p id="viewDesc">Керування профілями аніматорів та ставками</p>
+      </div>
+
+      <div class="view-actions" id="viewActions">
+        <input type="text" class="search-input" id="searchInput" placeholder="Пошук у таблиці..." oninput="handleSearch(this.value)">
+      </div>
+    </div>
+
+    <!-- Entity Table -->
+    <div class="table-box" id="tableWrapper">
+      <table id="dataTable">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div id="tableLoading" class="loading-state">Завантаження даних...</div>
+      <div id="tableEmpty" class="empty-state" style="display: none;">Записів не знайдено.</div>
+    </div>
+
+    <!-- API Console Section -->
+    <div class="console-section" id="consoleSection" style="display: none;">
+      <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">Зв'язки M:1 (зі сторони '1' до 'M')</div>
+      <div class="console-endpoints">
+        <div class="endpoint-item" onclick="runConsoleEndpoint('/api/agencies/1/orders')">
+          <span>GET /api/agencies/1/orders</span>
+          <span class="badge">M:1</span>
+        </div>
+        <div class="endpoint-item" onclick="runConsoleEndpoint('/api/clients/1/orders')">
+          <span>GET /api/clients/1/orders</span>
+          <span class="badge">M:1</span>
+        </div>
+        <div class="endpoint-item" onclick="runConsoleEndpoint('/api/orders/1/payments')">
+          <span>GET /api/orders/1/payments</span>
+          <span class="badge">M:1</span>
+        </div>
+        <div class="endpoint-item" onclick="runConsoleEndpoint('/api/addresses/1/orders')">
+          <span>GET /api/addresses/1/orders</span>
+          <span class="badge">M:1</span>
+        </div>
+        <div class="endpoint-item" onclick="runConsoleEndpoint('/api/holiday-types/1/orders')">
+          <span>GET /api/holiday-types/1/orders</span>
+          <span class="badge">M:1</span>
+        </div>
+      </div>
+
+      <div style="font-size: 13px; font-weight: 600; margin-top: 12px; margin-bottom: 4px;">Зв'язки M:M (Стикувальні таблиці)</div>
+      <div class="console-endpoints">
+        <div class="endpoint-item" onclick="runConsoleEndpoint('/api/agencies/1/animators')">
+          <span>GET /api/agencies/1/animators</span>
+          <span class="badge">M:M</span>
+        </div>
+        <div class="endpoint-item" onclick="runConsoleEndpoint('/api/animators/1/agencies')">
+          <span>GET /api/animators/1/agencies</span>
+          <span class="badge">M:M</span>
+        </div>
+        <div class="endpoint-item" onclick="runConsoleEndpoint('/api/animators/1/specializations')">
+          <span>GET /api/animators/1/specializations</span>
+          <span class="badge">M:M</span>
+        </div>
+        <div class="endpoint-item" onclick="runConsoleEndpoint('/api/specializations/1/animators')">
+          <span>GET /api/specializations/1/animators</span>
+          <span class="badge">M:M</span>
+        </div>
+        <div class="endpoint-item" onclick="runConsoleEndpoint('/api/orders/1/animators')">
+          <span>GET /api/orders/1/animators</span>
+          <span class="badge">M:M</span>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
+        <span style="font-size: 12.5px; font-weight: 600;" id="consoleStatusLabel">Результат запиту:</span>
+        <button class="btn btn-default btn-sm" onclick="copyConsoleOutput()">Копіювати JSON</button>
+      </div>
+      <pre class="code-box" id="consoleCodeViewer">// Натисніть на будь-який запит вище для отримання JSON-відповіді</pre>
+    </div>
+    </div>
+
+  </main>
+
+  <!-- Create / Edit Modal Form -->
+  <div class="modal-overlay" id="formModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="formModalTitle">Додати запис</h3>
+        <button class="modal-close" onclick="closeFormModal()">&times;</button>
+      </div>
+      <form id="entityForm" onsubmit="handleFormSubmit(event)">
+        <div class="modal-body" id="formModalBody">
+          <!-- Dynamic inputs -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" onclick="closeFormModal()">Скасувати</button>
+          <button type="submit" class="btn btn-primary" id="formSubmitBtn">Зберегти</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Stop Server Modal -->
+  <div class="modal-overlay" id="stopServerModal" onclick="if(event.target === this) closeStopModal()">
+    <div class="modal-card" style="max-width: 340px;">
+      <div class="modal-header">
+        <h3>Зупинити сервер</h3>
+        <button class="modal-close" onclick="closeStopModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 16px;">
+        <p style="color: var(--text-muted); font-size: 13px;">Зупинити локальний веб-сервер?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" onclick="closeStopModal()">Скасувати</button>
+        <button type="button" class="btn btn-danger" onclick="executeShutdown()">Зупинити</button>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-overlay" id="relationDrawer" onclick="if(event.target === this) closeDrawer()">
+    <div class="drawer-panel">
+      <div class="drawer-header">
+        <div>
+          <h3 style="font-size: 14px; font-weight: 600;" id="drawerTitle">Зв'язки запису</h3>
+          <p style="font-size: 11.5px; color: var(--text-muted);" id="drawerSubtitle">Супутні зв'язки M:1 та M:M</p>
+        </div>
+        <button class="modal-close" onclick="closeDrawer()">&times;</button>
+      </div>
+      <div class="drawer-body" id="drawerBody">
+        <!-- Dynamic relation cards -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Messages -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // Configuration dictionary of all entities
+    const ENTITIES = {
+      animators: {
+        title: 'Аніматори',
+        desc: 'Профілі аніматорів, контактні дані та погодинні ставки',
+        singular: 'Аніматор',
+        endpoint: '/api/animators',
+        idKey: 'animator_id',
+        columns: [
+          { key: 'animator_id', label: 'ID' },
+          { key: 'first_name', label: "Ім'я" },
+          { key: 'last_name', label: 'Прізвище' },
+          { key: 'phone', label: 'Телефон' },
+          { key: 'email', label: 'Email' },
+          { key: 'hourly_rate', label: 'Ставка / год', format: v => `${v} ₴` }
+        ],
+        relations: [
+          { label: 'Агенції аніматора (M:M)', path: id => `/api/animators/${id}/agencies`, keyName: 'name', subKey: 'city' },
+          { label: 'Спеціалізації (M:M)', path: id => `/api/animators/${id}/specializations`, keyName: 'name' }
+        ],
+        fields: [
+          { key: 'first_name', label: "Ім'я", type: 'text', required: true },
+          { key: 'last_name', label: 'Прізвище', type: 'text', required: true },
+          { key: 'phone', label: 'Телефон', type: 'tel', required: true, placeholder: '+380...' },
+          { key: 'email', label: 'Email', type: 'email' },
+          { key: 'hourly_rate', label: 'Погодинна ставка (грн)', type: 'number', step: '0.01', required: true }
+        ]
+      },
+      agencies: {
+        title: 'Агенції',
+        desc: 'Партнерські агенції свят',
+        singular: 'Агенція',
+        endpoint: '/api/agencies',
+        idKey: 'agency_id',
+        columns: [
+          { key: 'agency_id', label: 'ID' },
+          { key: 'name', label: 'Назва' },
+          { key: 'city', label: 'Місто' },
+          { key: 'phone', label: 'Телефон' },
+          { key: 'email', label: 'Email' }
+        ],
+        relations: [
+          { label: 'Аніматори агенції (M:M)', path: id => `/api/agencies/${id}/animators`, keyName: 'first_name', subKey: 'hourly_rate', formatSub: v => `${v} ₴/год` },
+          { label: 'Замовлення агенції (M:1)', path: id => `/api/agencies/${id}/orders`, keyName: 'event_date', subKey: 'total_cost', formatSub: v => `${v} ₴` }
+        ],
+        fields: [
+          { key: 'name', label: 'Назва агенції', type: 'text', required: true },
+          { key: 'city', label: 'Місто', type: 'text', required: true },
+          { key: 'phone', label: 'Телефон', type: 'tel', required: true },
+          { key: 'email', label: 'Email', type: 'email' }
+        ]
+      },
+      orders: {
+        title: 'Замовлення',
+        desc: 'Журнал замовлень свят та їх статус',
+        singular: 'Замовлення',
+        endpoint: '/api/orders',
+        idKey: 'order_id',
+        columns: [
+          { key: 'order_id', label: 'ID' },
+          { key: 'event_date', label: 'Дата свята' },
+          { key: 'start_time', label: 'Час' },
+          { key: 'duration_minutes', label: 'Тривалість', format: v => `${v} хв` },
+          { key: 'total_cost', label: 'Вартість', format: v => `${v} ₴` },
+          { key: 'status_id', label: 'Статус', badgeStatus: true },
+          { key: 'client_id', label: 'Клієнт ID' },
+          { key: 'agency_id', label: 'Агенція ID' }
+        ],
+        relations: [
+          { label: 'Закріплені аніматори (M:M)', path: id => `/api/orders/${id}/animators`, isCustomAnimators: true },
+          { label: 'Оплати за замовленням (M:1)', path: id => `/api/orders/${id}/payments`, keyName: 'paid_at', subKey: 'amount', formatSub: v => `${v} ₴` }
+        ],
+        fields: [
+          { key: 'agency_id', label: 'Агенція ID', type: 'number', required: true },
+          { key: 'client_id', label: 'Клієнт ID', type: 'number', required: true },
+          { key: 'holiday_type_id', label: 'Тип свята ID', type: 'number', required: true },
+          { key: 'address_id', label: 'Адреса ID', type: 'number', required: true },
+          { key: 'status_id', label: 'Статус (1-Нове, 2-Підтверджено, 3-Виконано, 4-Скасовано)', type: 'number', required: true },
+          { key: 'event_date', label: 'Дата проведення (YYYY-MM-DD)', type: 'date', required: true },
+          { key: 'start_time', label: 'Час початку (HH:MM:SS)', type: 'text', placeholder: '14:00:00', required: true },
+          { key: 'duration_minutes', label: 'Тривалість (хв)', type: 'number', required: true },
+          { key: 'total_cost', label: 'Загальна вартість (грн)', type: 'number', step: '0.01', required: true }
+        ]
+      },
+      clients: {
+        title: 'Клієнти',
+        desc: 'База замовників дитячих свят',
+        singular: 'Клієнт',
+        endpoint: '/api/clients',
+        idKey: 'client_id',
+        columns: [
+          { key: 'client_id', label: 'ID' },
+          { key: 'full_name', label: "ПІБ" },
+          { key: 'phone', label: 'Телефон' },
+          { key: 'email', label: 'Email' }
+        ],
+        relations: [
+          { label: 'Замовлення клієнта (M:1)', path: id => `/api/clients/${id}/orders`, keyName: 'event_date', subKey: 'total_cost', formatSub: v => `${v} ₴` }
+        ],
+        fields: [
+          { key: 'full_name', label: "ПІБ", type: 'text', required: true },
+          { key: 'phone', label: 'Телефон', type: 'tel', required: true },
+          { key: 'email', label: 'Email', type: 'email' }
+        ]
+      },
+      specializations: {
+        title: 'Спеціалізації',
+        desc: 'Акторські амплуа та персонажі',
+        singular: 'Спеціалізація',
+        endpoint: '/api/specializations',
+        idKey: 'specialization_id',
+        columns: [
+          { key: 'specialization_id', label: 'ID' },
+          { key: 'name', label: 'Назва спеціалізації' }
+        ],
+        relations: [
+          { label: 'Аніматори зі спеціалізацією (M:M)', path: id => `/api/specializations/${id}/animators`, keyName: 'first_name', subKey: 'hourly_rate', formatSub: v => `${v} ₴/год` }
+        ],
+        fields: [
+          { key: 'name', label: 'Назва', type: 'text', required: true }
+        ]
+      },
+      reviews: {
+        title: 'Відгуки про аніматорів',
+        desc: 'Додаткова таблиця 1:M без фізичного FK (цілісність через тригери замість FK)',
+        singular: 'Відгук',
+        endpoint: '/api/reviews',
+        idKey: 'review_id',
+        columns: [
+          { key: 'review_id', label: 'ID' },
+          { key: 'animator_id', label: 'Аніматор ID' },
+          { key: 'rating', label: 'Оцінка', format: v => '⭐'.repeat(Number(v) || 0) },
+          { key: 'comment', label: 'Коментар' },
+          { key: 'review_date', label: 'Дата відгуку' }
+        ],
+        relations: [],
+        fields: [
+          { key: 'animator_id', label: 'Аніматор ID (перевіряється тригером)', type: 'number', required: true },
+          { key: 'rating', label: 'Оцінка (1-5)', type: 'number', required: true },
+          { key: 'comment', label: 'Коментар', type: 'text' },
+          { key: 'review_date', label: 'Дата (YYYY-MM-DD)', type: 'date', required: true }
+        ]
+      },
+      audit_logs: {
+        title: 'Журнал аудиту модифікацій (animator_audit_logs)',
+        desc: 'Автоматично наповнюється бізнес-тригером trg_animators_log_update при зміні ставки аніматора',
+        singular: 'Запис аудиту',
+        endpoint: '/api/audit-logs',
+        idKey: 'log_id',
+        columns: [
+          { key: 'log_id', label: 'Log ID' },
+          { key: 'animator_id', label: 'Аніматор ID' },
+          { key: 'old_hourly_rate', label: 'Попередня ставка', format: v => `${v} ₴` },
+          { key: 'new_hourly_rate', label: 'Нова ставка', format: v => `${v} ₴` },
+          { key: 'modified_at', label: 'Час модифікації (Київ)', format: v => v ? v.replace('T', ' ').substring(0, 19) : '' },
+          { key: 'details', label: 'Деталі' }
+        ],
+        relations: [],
+        fields: []
+      },
+      payments: {
+        title: 'Оплати',
+        desc: 'Фіксація оплат за свята',
+        singular: 'Оплата',
+        endpoint: '/api/payments',
+        idKey: 'payment_id',
+        columns: [
+          { key: 'payment_id', label: 'ID' },
+          { key: 'order_id', label: 'Замовлення ID' },
+          { key: 'amount', label: 'Сума', format: v => `${v} ₴` },
+          { key: 'paid_at', label: 'Дата оплати' },
+          { key: 'method_id', label: 'Метод ID' }
+        ],
+        relations: [],
+        fields: [
+          { key: 'order_id', label: 'Замовлення ID', type: 'number', required: true },
+          { key: 'method_id', label: 'Спосіб оплати ID', type: 'number', required: true },
+          { key: 'amount', label: 'Сума (грн)', type: 'number', step: '0.01', required: true },
+          { key: 'paid_at', label: 'Дата оплати (YYYY-MM-DD)', type: 'date', required: true }
+        ]
+      },
+      addresses: {
+        title: 'Адреси',
+        desc: 'Локації проведення свят',
+        singular: 'Адреса',
+        endpoint: '/api/addresses',
+        idKey: 'address_id',
+        columns: [
+          { key: 'address_id', label: 'ID' },
+          { key: 'city', label: 'Місто' },
+          { key: 'street', label: 'Вулиця' },
+          { key: 'building', label: 'Будинок' },
+          { key: 'place_name', label: 'Локація' }
+        ],
+        relations: [
+          { label: 'Замовлення на цю адресу (M:1)', path: id => `/api/addresses/${id}/orders`, keyName: 'event_date', subKey: 'total_cost', formatSub: v => `${v} ₴` }
+        ],
+        fields: [
+          { key: 'city', label: 'Місто', type: 'text', required: true },
+          { key: 'street', label: 'Вулиця', type: 'text', required: true },
+          { key: 'building', label: 'Будинок', type: 'text', required: true },
+          { key: 'place_name', label: 'Назва локації', type: 'text' }
+        ]
+      },
+      'holiday-types': {
+        title: 'Типи свят',
+        desc: 'Формати дитячих заходів',
+        singular: 'Тип свята',
+        endpoint: '/api/holiday-types',
+        idKey: 'holiday_type_id',
+        columns: [
+          { key: 'holiday_type_id', label: 'ID' },
+          { key: 'name', label: 'Назва' }
+        ],
+        relations: [
+          { label: 'Замовлення за цим типом (M:1)', path: id => `/api/holiday-types/${id}/orders`, keyName: 'event_date', subKey: 'total_cost', formatSub: v => `${v} ₴` }
+        ],
+        fields: [
+          { key: 'name', label: 'Назва типу', type: 'text', required: true }
+        ]
+      },
+      'order-statuses': {
+        title: 'Статуси замовлень',
+        desc: 'Довідник статусів замовлень',
+        singular: 'Статус',
+        endpoint: '/api/order-statuses',
+        idKey: 'status_id',
+        columns: [
+          { key: 'status_id', label: 'ID' },
+          { key: 'name', label: 'Назва статусу' }
+        ],
+        relations: [
+          { label: 'Замовлення з цим статусом (M:1)', path: id => `/api/order-statuses/${id}/orders`, keyName: 'event_date', subKey: 'total_cost', formatSub: v => `${v} ₴` }
+        ],
+        fields: [
+          { key: 'name', label: 'Назва статусу', type: 'text', required: true }
+        ]
+      },
+      'payment-methods': {
+        title: 'Способи оплати',
+        desc: 'Довідник способів розрахунку',
+        singular: 'Спосіб оплати',
+        endpoint: '/api/payment-methods',
+        idKey: 'method_id',
+        columns: [
+          { key: 'method_id', label: 'ID' },
+          { key: 'name', label: 'Назва способу' }
+        ],
+        relations: [
+          { label: 'Платежі за методом (M:1)', path: id => `/api/payment-methods/${id}/payments`, keyName: 'paid_at', subKey: 'amount', formatSub: v => `${v} ₴` }
+        ],
+        fields: [
+          { key: 'name', label: 'Назва способу', type: 'text', required: true }
+        ]
+      },
+      roles: {
+        title: 'Ролі аніматорів',
+        desc: 'Ролі у виставах та святах',
+        singular: 'Роль',
+        endpoint: '/api/roles',
+        idKey: 'role_id',
+        columns: [
+          { key: 'role_id', label: 'ID' },
+          { key: 'name', label: 'Назва ролі' }
+        ],
+        relations: [],
+        fields: [
+          { key: 'name', label: 'Назва ролі', type: 'text', required: true }
+        ]
+      }
+    };
+
+    // State
+    let currentViewKey = 'animators';
+    let currentData = [];
+    let filteredData = [];
+    let editMode = false;
+    let editingId = null;
+
+    const STATUS_MAP = {
+      1: 'Нове',
+      2: 'Підтверджено',
+      3: 'Виконано',
+      4: 'Скасовано'
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeButton(savedTheme);
+
+      loadKpis();
+      switchView('animators');
+    });
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateThemeButton(next);
+    }
+
+    function updateThemeButton(theme) {
+      document.getElementById('themeBtn').innerText = theme === 'dark' ? 'Світла тема' : 'Темна тема';
+    }
+
+    function toggleCatalogsSubnav() {
+      const subnav = document.getElementById('catalogsSubnav');
+      const isVisible = subnav.style.display === 'block';
+      subnav.style.display = isVisible ? 'none' : 'block';
+    }
+
+    async function loadKpis() {
+      try {
+        const [animRes, agenRes, ordRes, payRes] = await Promise.all([
+          fetch('/api/animators').then(r => r.json()),
+          fetch('/api/agencies').then(r => r.json()),
+          fetch('/api/orders').then(r => r.json()),
+          fetch('/api/payments').then(r => r.json())
+        ]);
+        if (Array.isArray(animRes)) document.getElementById('kpiAnimators').innerText = animRes.length;
+        if (Array.isArray(agenRes)) document.getElementById('kpiAgencies').innerText = agenRes.length;
+        if (Array.isArray(ordRes)) document.getElementById('kpiOrders').innerText = ordRes.length;
+        if (Array.isArray(payRes)) {
+          const total = payRes.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+          document.getElementById('kpiPayments').innerText = `${total.toLocaleString('uk-UA')} ₴`;
+        }
+      } catch (e) {
+        console.warn('KPI loading error:', e);
+      }
+    }
+
+    function switchView(viewKey) {
+      currentViewKey = viewKey;
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        const attr = btn.getAttribute('onclick') || '';
+        btn.classList.toggle('active', attr.includes(`'${viewKey}'`));
+      });
+
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) searchInput.value = '';
+
+      if (viewKey === 'api-console') {
+        document.getElementById('summaryBar').style.display = 'none';
+        document.getElementById('tableWrapper').style.display = 'none';
+        document.getElementById('consoleSection').style.display = 'flex';
+        document.getElementById('viewActions').style.display = 'none';
+        document.getElementById('btnCreate').style.display = 'none';
+        document.getElementById('viewTitle').innerText = 'API Консоль';
+        document.getElementById('viewDesc').innerText = 'Тестування REST API ендпоінтів та звʼязків';
+        return;
+      }
+
+      document.getElementById('summaryBar').style.display = 'flex';
+      document.getElementById('tableWrapper').style.display = 'block';
+      document.getElementById('consoleSection').style.display = 'none';
+      document.getElementById('viewActions').style.display = 'flex';
+      document.getElementById('btnCreate').style.display = 'inline-flex';
+
+      const conf = ENTITIES[viewKey];
+      document.getElementById('viewTitle').innerText = conf.title;
+      document.getElementById('viewDesc').innerText = conf.desc;
+      document.getElementById('btnCreate').innerText = `+ Додати ${conf.singular.toLowerCase()}`;
+
+      fetchEntityData();
+    }
+
+    function refreshCurrentView() {
+      loadKpis();
+      if (currentViewKey !== 'api-console') {
+        fetchEntityData();
+      }
+      showToast('Дані оновлено');
+    }
+
+    async function fetchEntityData() {
+      const conf = ENTITIES[currentViewKey];
+      if (!conf) return;
+
+      document.getElementById('tableLoading').style.display = 'block';
+      document.getElementById('tableEmpty').style.display = 'none';
+      document.getElementById('tableBody').innerHTML = '';
+
+      try {
+        const res = await fetch(conf.endpoint);
+        const data = await res.json();
+        currentData = Array.isArray(data) ? data : [];
+        filteredData = [...currentData];
+        renderTable();
+      } catch (err) {
+        showToast('Помилка: ' + err.message);
+      } finally {
+        document.getElementById('tableLoading').style.display = 'none';
+      }
+    }
+
+    function renderTable() {
+      const conf = ENTITIES[currentViewKey];
+      const head = document.getElementById('tableHead');
+      const body = document.getElementById('tableBody');
+      const emptyState = document.getElementById('tableEmpty');
+
+      let headHtml = '<tr>';
+      conf.columns.forEach(col => {
+        headHtml += `<th>${col.label}</th>`;
+      });
+      headHtml += '<th style="text-align: right;">Дії</th></tr>';
+      head.innerHTML = headHtml;
+
+      if (filteredData.length === 0) {
+        body.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+
+      let bodyHtml = '';
+      filteredData.forEach(row => {
+        const id = row[conf.idKey];
+        bodyHtml += `<tr>`;
+        conf.columns.forEach(col => {
+          let val = row[col.key];
+          if (col.format) {
+            val = col.format(val, row);
+          } else if (col.badgeStatus) {
+            const st = STATUS_MAP[val] || `Статус #${val}`;
+            const isDone = val === 3;
+            val = `<span class="badge ${isDone ? 'badge-done' : ''}">${st}</span>`;
+          } else if (val === null || val === undefined || val === '') {
+            val = '<span style="color:var(--text-subtle);">-</span>';
+          }
+          bodyHtml += `<td>${val}</td>`;
+        });
+
+        bodyHtml += `<td style="text-align: right;">
+          <div class="action-links">`;
+        
+        if (conf.relations && conf.relations.length > 0) {
+          bodyHtml += `<span class="action-link" onclick="openRelationsDrawer(${id})">Зв'язки</span>`;
+        }
+
+        bodyHtml += `
+            <span class="action-link" onclick="openEditModal(${id})">Змінити</span>
+            <span class="action-link delete" onclick="confirmDelete(${id})">Видалити</span>
+          </div>
+        </td></tr>`;
+      });
+      body.innerHTML = bodyHtml;
+    }
+
+    function handleSearch(query) {
+      const q = query.trim().toLowerCase();
+      if (!q) {
+        filteredData = [...currentData];
+      } else {
+        filteredData = currentData.filter(row => {
+          return Object.values(row).some(v => String(v).toLowerCase().includes(q));
+        });
+      }
+      renderTable();
+    }
+
+    function openCreateModal() {
+      const conf = ENTITIES[currentViewKey];
+      editMode = false;
+      editingId = null;
+      document.getElementById('formModalTitle').innerText = `Додати: ${conf.singular}`;
+      document.getElementById('formSubmitBtn').innerText = 'Створити';
+      buildFormFields();
+      document.getElementById('formModal').classList.add('open');
+    }
+
+    function openEditModal(id) {
+      const conf = ENTITIES[currentViewKey];
+      const row = currentData.find(item => item[conf.idKey] === id);
+      if (!row) return;
+
+      editMode = true;
+      editingId = id;
+      document.getElementById('formModalTitle').innerText = `Змінити: ${conf.singular} #${id}`;
+      document.getElementById('formSubmitBtn').innerText = 'Зберегти';
+      buildFormFields(row);
+      document.getElementById('formModal').classList.add('open');
+    }
+
+    function closeFormModal() {
+      document.getElementById('formModal').classList.remove('open');
+    }
+
+    function buildFormFields(data = {}) {
+      const conf = ENTITIES[currentViewKey];
+      const container = document.getElementById('formModalBody');
+      let html = '';
+
+      conf.fields.forEach(f => {
+        const val = data[f.key] !== undefined && data[f.key] !== null ? data[f.key] : '';
+        html += `
+          <div class="form-group">
+            <label class="form-label">${f.label} ${f.required ? '*' : ''}</label>
+            <input 
+              class="form-control" 
+              name="${f.key}" 
+              type="${f.type || 'text'}" 
+              value="${val}" 
+              placeholder="${f.placeholder || ''}" 
+              ${f.step ? `step="${f.step}"` : ''} 
+              ${f.required ? 'required' : ''}
+            >
+          </div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    async function handleFormSubmit(event) {
+      event.preventDefault();
+      const conf = ENTITIES[currentViewKey];
+      const form = document.getElementById('entityForm');
+      const formData = new FormData(form);
+      const payload = {};
+
+      formData.forEach((value, key) => {
+        const fieldDef = conf.fields.find(f => f.key === key);
+        if (fieldDef && fieldDef.type === 'number') {
+          payload[key] = value !== '' ? (fieldDef.step ? parseFloat(value) : parseInt(value, 10)) : null;
+        } else {
+          payload[key] = value !== '' ? value : null;
+        }
+      });
+
+      const url = editMode ? `${conf.endpoint}/${editingId}` : conf.endpoint;
+      const method = editMode ? 'PUT' : 'POST';
+
+      try {
+        const res = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+
+        closeFormModal();
+        showToast(editMode ? 'Запис оновлено' : 'Запис додано');
+        fetchEntityData();
+        loadKpis();
+      } catch (err) {
+        showToast('Помилка: ' + err.message);
+      }
+    }
+
+    async function confirmDelete(id) {
+      const conf = ENTITIES[currentViewKey];
+      if (!confirm(`Видалити ${conf.singular.toLowerCase()} #${id}?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`${conf.endpoint}/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+        showToast(`Запис #${id} видалено`);
+        fetchEntityData();
+        loadKpis();
+      } catch (err) {
+        showToast('Помилка: ' + err.message);
+      }
+    }
+
+    async function openRelationsDrawer(id) {
+      const conf = ENTITIES[currentViewKey];
+      const drawer = document.getElementById('relationDrawer');
+      const title = document.getElementById('drawerTitle');
+      const subtitle = document.getElementById('drawerSubtitle');
+      const body = document.getElementById('drawerBody');
+
+      title.innerText = `Зв'язки: ${conf.singular} #${id}`;
+      subtitle.innerText = 'Завантаження...';
+      body.innerHTML = '<div class="loading-state">Отримання звʼязаних даних...</div>';
+      drawer.classList.add('open');
+
+      try {
+        let sectionsHtml = '';
+        for (const rel of conf.relations) {
+          const url = rel.path(id);
+          const res = await fetch(url);
+          const items = await res.json();
+
+          sectionsHtml += `
+            <div>
+              <div class="relation-section-title">${rel.label} (${Array.isArray(items) ? items.length : 0})</div>`;
+
+          if (Array.isArray(items) && items.length > 0) {
+            sectionsHtml += `<div style="display:flex; flex-direction:column; gap:6px;">`;
+            items.forEach(item => {
+              if (rel.isCustomAnimators) {
+                sectionsHtml += `
+                  <div class="relation-item">
+                    <b>${item.first_name || ''} ${item.last_name || ''} (ID: ${item.animator_id})</b>
+                    <span style="color:var(--text-muted)">Роль ID: ${item.role_id} • Телефон: ${item.phone || '-'} • Гонорар: ${item.fee} ₴</span>
+                  </div>`;
+              } else {
+                let name = item[rel.keyName] || item.name || item.first_name || `Елемент #${Object.values(item)[0]}`;
+                if (item.last_name) name += ` ${item.last_name}`;
+                let sub = '';
+                if (rel.subKey && item[rel.subKey]) {
+                  const subVal = rel.formatSub ? rel.formatSub(item[rel.subKey]) : item[rel.subKey];
+                  sub = ` • ${subVal}`;
+                }
+                sectionsHtml += `
+                  <div class="relation-item">
+                    <b>${name}</b>
+                    <span style="color:var(--text-muted)">${JSON.stringify(item).replace(/[{}"]/g, '')}</span>
+                  </div>`;
+              }
+            });
+            sectionsHtml += `</div>`;
+          } else {
+            sectionsHtml += `<div style="color:var(--text-muted); font-size:12px; padding: 4px 0;">Немає повʼязаних записів</div>`;
+          }
+          sectionsHtml += `</div>`;
+        }
+
+        body.innerHTML = sectionsHtml || '<div style="color:var(--text-muted)">Немає звʼязків для відображення</div>';
+        subtitle.innerText = `Зв'язки завантажено`;
+      } catch (err) {
+        body.innerHTML = `<div class="empty-state">Помилка завантаження: ${err.message}</div>`;
+      }
+    }
+
+    function closeDrawer() {
+      document.getElementById('relationDrawer').classList.remove('open');
+    }
+
+    async function runConsoleEndpoint(url) {
+      const viewer = document.getElementById('consoleCodeViewer');
+      const statusLabel = document.getElementById('consoleStatusLabel');
+      viewer.innerText = `Виконання GET ${url} ...`;
+      statusLabel.innerText = `Запит: ${url}`;
+
+      const startTime = performance.now();
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const duration = Math.round(performance.now() - startTime);
+
+        statusLabel.innerHTML = `Статус: ${res.status} ${res.statusText} • Час: ${duration} мс • URL: ${url}`;
+        viewer.innerText = JSON.stringify(data, null, 2);
+      } catch (err) {
+        statusLabel.innerText = 'Помилка виклику';
+        viewer.innerText = err.toString();
+      }
+    }
+
+    function copyConsoleOutput() {
+      const code = document.getElementById('consoleCodeViewer').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        showToast('JSON скопійовано');
+      });
+    }
+
+    function openStopModal() {
+      document.getElementById('stopServerModal').classList.add('open');
+    }
+
+    function closeStopModal() {
+      document.getElementById('stopServerModal').classList.remove('open');
+    }
+
+    async function executeShutdown() {
+      closeStopModal();
+      const btn = document.getElementById('btnStopServer');
+      if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+      }
+      showToast('Зупинка сервера...');
+      try {
+        await fetch('/api/shutdown', { method: 'POST' });
+      } catch (err) {
+        // Socket closed on shutdown
+      }
+      showToast('Сервер зупинено');
+
+      let secondsLeft = 15;
+      document.body.insertAdjacentHTML('afterbegin', `
+        <div id="shutdownBanner" style="background: var(--danger-light); color: var(--danger); padding: 10px 16px; text-align: center; font-size: 13px; font-weight: 500; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 9999;">
+          Сервер зупинено. Перезавантаження сторінки через <span id="reloadCountdown">15</span> с.
+        </div>
+      `);
+
+      const timer = setInterval(() => {
+        secondsLeft -= 1;
+        const countSpan = document.getElementById('reloadCountdown');
+        if (countSpan) {
+          countSpan.innerText = secondsLeft;
+        }
+        if (secondsLeft <= 0) {
+          clearInterval(timer);
+          window.location.reload();
+        }
+      }, 1000);
+    }
+
+    function showToast(message) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerText = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.2s';
+        setTimeout(() => toast.remove(), 200);
+      }, 2500);
+    }
+
+    // ==========================================
+    // ЛАБОРАТОРНА РОБОТА №5: ВИКЛИК ПРОЦЕДУР
+    // ==========================================
+    async function runProcInsertClient() {
+      const name = document.getElementById('p1_name').value;
+      const phone = document.getElementById('p1_phone').value;
+      const email = document.getElementById('p1_email').value;
+      const resBox = document.getElementById('p1_result');
+      resBox.style.display = 'block';
+      resBox.innerText = 'Виконання процедури sp_insert_client...';
+      try {
+        const res = await fetch('/api/procedures/insert-client', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ full_name: name, phone: phone, email: email })
+        });
+        const data = await res.json();
+        resBox.innerText = JSON.stringify(data, null, 2);
+        showToast('Процедуру 1 виконано успішно!');
+        refreshKPIs();
+      } catch (err) {
+        resBox.innerText = 'Помилка: ' + err.toString();
+      }
+    }
+
+    async function runProcLinkM2M() {
+      const fname = document.getElementById('p2_fname').value;
+      const lname = document.getElementById('p2_lname').value;
+      const spec = document.getElementById('p2_spec').value;
+      const resBox = document.getElementById('p2_result');
+      resBox.style.display = 'block';
+      resBox.innerText = 'Виконання процедури sp_link_animator_specialization...';
+      try {
+        const res = await fetch('/api/procedures/link-m2m', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ first_name: fname, last_name: lname, specialization_name: spec })
+        });
+        const data = await res.json();
+        resBox.innerText = JSON.stringify(data, null, 2);
+        showToast('Процедуру 2 виконано успішно!');
+      } catch (err) {
+        resBox.innerText = 'Помилка: ' + err.toString();
+      }
+    }
+
+    async function runProcTenNonames() {
+      const resBox = document.getElementById('p3_result');
+      resBox.style.display = 'block';
+      resBox.innerText = 'Виконання процедури sp_insert_ten_nonames...';
+      try {
+        const res = await fetch('/api/procedures/insert-nonames', { method: 'POST' });
+        const data = await res.json();
+        resBox.innerText = JSON.stringify(data, null, 2);
+        showToast('Процедуру 3 (10 Noname) виконано!');
+      } catch (err) {
+        resBox.innerText = 'Помилка: ' + err.toString();
+      }
+    }
+
+    async function runProcAvgRate() {
+      const resBox = document.getElementById('p4_result');
+      resBox.style.display = 'block';
+      resBox.innerText = 'Виконання sp_get_animators_above_avg_rate (виклик fn_get_avg_hourly_rate)...';
+      try {
+        const res = await fetch('/api/procedures/stats-avg');
+        const data = await res.json();
+        resBox.innerText = JSON.stringify(data, null, 2);
+        showToast('Процедуру 4 та функцію виконано!');
+      } catch (err) {
+        resBox.innerText = 'Помилка: ' + err.toString();
+      }
+    }
+
+    async function runProcCursorSplit() {
+      const resBox = document.getElementById('p5_result');
+      resBox.style.display = 'block';
+      resBox.innerText = 'Виконання sp_cursor_split_animators (робота курсора)...';
+      try {
+        const res = await fetch('/api/procedures/cursor-split', { method: 'POST' });
+        const data = await res.json();
+        resBox.innerText = JSON.stringify(data, null, 2);
+        showToast('Процедуру 5 з курсором виконано!');
+      } catch (err) {
+        resBox.innerText = 'Помилка: ' + err.toString();
+      }
+    }
+
+    async function testTriggerForbiddenDelete() {
+      const resBox = document.getElementById('trig_result');
+      resBox.style.display = 'block';
+      resBox.innerText = 'Тестування заборони DELETE оплат...';
+      try {
+        const res = await fetch('/api/payments/1', { method: 'DELETE' });
+        const data = await res.json();
+        resBox.innerText = 'Код відповіді: ' + res.status + '\n' + JSON.stringify(data, null, 2);
+      } catch (err) {
+        resBox.innerText = 'Помилка/Тригер спрацював: ' + err.toString();
+      }
+    }
+
+    async function testTriggerNoDoubleZeros() {
+      const resBox = document.getElementById('trig_result');
+      resBox.style.display = 'block';
+      resBox.innerText = 'Тестування заборони ставки з двома нулями (500.00)...';
+      try {
+        const res = await fetch('/api/animators', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            first_name: 'Тест',
+            last_name: 'Нульовий',
+            phone: '+380990000000',
+            hourly_rate: 500.0
+          })
+        });
+        const data = await res.json();
+        resBox.innerText = 'Код відповіді: ' + res.status + '\n' + JSON.stringify(data, null, 2);
+      } catch (err) {
+        resBox.innerText = 'Помилка/Тригер спрацював: ' + err.toString();
+      }
+    }
+
+    async function testTriggerIntegrityReviews() {
+      const resBox = document.getElementById('trig_result');
+      resBox.style.display = 'block';
+      resBox.innerText = 'Тестування цілісності: вставка відгуку з неіснуючим animator_id 999999...';
+      try {
+        const res = await fetch('/api/reviews', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            animator_id: 999999,
+            rating: 5,
+            comment: 'Тестовий відгук',
+            review_date: '2026-11-19'
+          })
+        });
+        const data = await res.json();
+        resBox.innerText = 'Код відповіді: ' + res.status + '\n' + JSON.stringify(data, null, 2);
+      } catch (err) {
+        resBox.innerText = 'Помилка: ' + err.toString();
+      }
+    }
+
+  </script>
+</body>
+</html>
